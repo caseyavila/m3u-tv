@@ -1,0 +1,1 @@
+gcc -g -o main main.c `pkg-config --libs --cflags mpv sdl2 gtk+-3.0 epoxy` -std=c99
