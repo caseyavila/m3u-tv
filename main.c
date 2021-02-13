@@ -70,8 +70,6 @@ void render_frame(struct mpv_kc *mpv_kc) {
 	}
 
     if (mpv_kc->wakeup) {
-        //mpv_render_context_render(mpv_kc->render_context, params);
-
         mpv_render_context_report_swap(mpv_kc->render_context);
         mpv_kc->wakeup = 0;
     }
@@ -127,12 +125,14 @@ void mpv_init(struct mpv_kc *mpv_kc) {
 
     mpv_set_wakeup_callback(mpv_kc->handle, on_mpv_events, NULL);
     mpv_render_context_set_update_callback(mpv_kc->render_context, on_mpv_render_update, mpv_kc);
-
-    const char *cmd[] = {"loadfile", "/home/casey/hi.mp4", NULL};
-    mpv_command(mpv_kc->handle, cmd);
 }
 
 int main(int argc, char **argv) {
+    if (argc < 2) {
+        printf("Please supply file name...\n");
+        exit(1);
+    }
+
     gtk_init(&argc, &argv);
 
     struct mpv_kc *mpv_kc = malloc(sizeof *mpv_kc);
@@ -150,6 +150,8 @@ int main(int argc, char **argv) {
     gtk_widget_show_all(window);
 
     mpv_init(mpv_kc);
+    const char *cmd[] = {"loadfile", argv[1], NULL};
+    mpv_command(mpv_kc->handle, cmd);
 
     gtk_main();
 
