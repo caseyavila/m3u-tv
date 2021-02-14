@@ -129,7 +129,7 @@ void mpv_init(struct mpv_kc *mpv_kc) {
 
 int main(int argc, char **argv) {
     if (argc < 2) {
-        printf("Please supply file name...\n");
+        printf("Please supply a video file name...\n");
         exit(1);
     }
 
