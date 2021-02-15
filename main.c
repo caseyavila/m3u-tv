@@ -28,11 +28,13 @@ void process_events(struct m3u_tv_player* player) {
     while (!done) {
         mpv_event *event = mpv_wait_event(player->handle, 0);
 
-        //printf("%s\n", mpv_event_name(event->event_id));
-
         switch (event->event_id) {
             case MPV_EVENT_NONE:
                 done = 1;
+                break;
+
+            case MPV_EVENT_LOG_MESSAGE:
+                printf("log: %s", ((mpv_event_log_message *) event->data)->text);
                 break;
 
             case MPV_EVENT_PROPERTY_CHANGE: {
@@ -45,7 +47,7 @@ void process_events(struct m3u_tv_player* player) {
                     }
                 }
             }
-                break;
+            break;
 
             default: ;
         }
@@ -158,6 +160,12 @@ void mpv_init(struct m3u_tv_player *player) {
     mpv_render_context_set_update_callback(player->render_context, on_mpv_render_update, player);
 }
 
+void seek_absolute(GtkRange *range, GtkScrollType scroll, double value, gpointer user_data) {
+    struct m3u_tv_player *player = (struct m3u_tv_player*) user_data;
+
+    mpv_set_property(player->handle, "time-pos", MPV_FORMAT_DOUBLE, &value);
+}
+
 int main(int argc, char **argv) {
     if (argc < 2) {
         printf("Please supply a video file name...\n");
@@ -173,7 +181,7 @@ int main(int argc, char **argv) {
     GtkWidget *grid_player = gtk_grid_new();
     player->gl_area = gtk_gl_area_new();
     player->scale = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0, 100, 1);
-    gtk_scale_set_draw_value(GTK_SCALE (player->scale), FALSE);
+    //gtk_scale_set_draw_value(GTK_SCALE (player->scale), FALSE);
 
     GtkWidget *label_player = gtk_label_new("Player");
     GtkWidget *label_guide = gtk_label_new("Guide");
@@ -193,6 +201,8 @@ int main(int argc, char **argv) {
     g_signal_connect(player->gl_area, "render", G_CALLBACK (render), player);
     g_signal_connect(player->gl_area, "realize", G_CALLBACK (realize), NULL);
     g_signal_connect(player->gl_area, "resize", G_CALLBACK (resize), player);
+
+    g_signal_connect(GTK_RANGE (player->scale), "change-value", G_CALLBACK(seek_absolute), player);
     
     gtk_container_add(GTK_CONTAINER (window), notebook);
     gtk_widget_show_all(window);
