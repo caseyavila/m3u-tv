@@ -37,10 +37,12 @@ void process_events(struct m3u_tv_player* player) {
 
             case MPV_EVENT_PROPERTY_CHANGE: {
                 mpv_event_property *prop = (mpv_event_property *)event->data;
-                if (strcmp(prop->name, "duration") == 0) {
-                    gtk_range_set_range(GTK_RANGE (player->scale), 0, *(double *) prop->data);
-                } else if (strcmp(prop->name, "time-pos") == 0) {
-                    gtk_range_set_value(GTK_RANGE (player->scale), *(double *) prop->data);
+                if (prop->format == MPV_FORMAT_DOUBLE) {
+                    if (strcmp(prop->name, "duration") == 0) {
+                        gtk_range_set_range(GTK_RANGE (player->scale), 0, *(double *) prop->data);
+                    } else if (strcmp(prop->name, "time-pos") == 0) {
+                        gtk_range_set_value(GTK_RANGE (player->scale), *(double *) prop->data);
+                    }
                 }
             }
                 break;
