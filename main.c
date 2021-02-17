@@ -124,6 +124,7 @@ static gboolean render(GtkGLArea *area, GdkGLContext *context, gpointer user_dat
 
     gtk_gl_area_queue_render(area);
 
+
     return TRUE;
 }
 
@@ -171,7 +172,11 @@ void mpv_init(struct m3u_tv_player *player) {
 void seek_absolute(GtkRange *range, GtkScrollType scroll, double value, gpointer user_data) {
     struct m3u_tv_player *player = user_data;
 
-    mpv_set_property(player->handle, "time-pos", MPV_FORMAT_DOUBLE, &value);
+    gchar buf[G_ASCII_DTOSTR_BUF_SIZE];
+	g_ascii_dtostr(buf, G_ASCII_DTOSTR_BUF_SIZE, value);
+
+    const char *cmd[] = {"seek", buf, "absolute", NULL};
+    mpv_command_async(player->handle, 0, cmd);
 }
 
 static gchar* format_value(GtkScale *scale, gdouble value) {
@@ -189,16 +194,30 @@ void button_play_pause_clicked(GtkButton *button, gpointer user_data) {
 
     if (player->pause) {
         const char *cmd[] = {"set", "pause", "no", NULL};
-        mpv_command(player->handle, cmd);
+        mpv_command_async(player->handle, 0, cmd);
         gtk_button_set_image(GTK_BUTTON (button), gtk_image_new_from_icon_name("media-playback-pause", GTK_ICON_SIZE_BUTTON));
 
         player->pause = 0;
     } else {
         const char *cmd[] = {"set", "pause", "yes", NULL};
         gtk_button_set_image(GTK_BUTTON (button), gtk_image_new_from_icon_name("media-playback-start", GTK_ICON_SIZE_BUTTON));
-        mpv_command(player->handle, cmd);
+        mpv_command_async(player->handle, 0, cmd);
         player->pause = 1;
     }
+}
+
+void button_skip_backward_clicked(GtkButton *button, gpointer user_data) {
+    struct m3u_tv_player *player = user_data;
+
+    const char *cmd[] = {"seek", "-10", NULL};
+    mpv_command_async(player->handle, 0, cmd);
+}
+
+void button_seek_backward_clicked(GtkButton *button, gpointer user_data) {
+    struct m3u_tv_player *player = user_data;
+
+    const char *cmd[] = {"seek", "-30", NULL};
+    mpv_command_async(player->handle, 0, cmd);
 }
 
 int main(int argc, char **argv) {
@@ -216,25 +235,48 @@ int main(int argc, char **argv) {
     GtkWidget *grid_player = gtk_grid_new();
 
     player->gl_area = gtk_gl_area_new();
-    player->scale = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0, 100, 1);
-    gtk_scale_set_draw_value(GTK_SCALE (player->scale), FALSE);
+
+    GtkWidget *button_skip_backward = gtk_button_new_from_icon_name("media-skip-backward", GTK_ICON_SIZE_BUTTON);
+    g_object_set(button_skip_backward, "relief", GTK_RELIEF_NONE, NULL);
+
+    GtkWidget *button_seek_backward = gtk_button_new_from_icon_name("media-seek-backward", GTK_ICON_SIZE_BUTTON);
+    g_object_set(button_seek_backward, "relief", GTK_RELIEF_NONE, NULL);
 
     GtkWidget *button_play_pause = gtk_button_new_from_icon_name("media-playback-pause", GTK_ICON_SIZE_BUTTON);
     g_object_set(button_play_pause, "relief", GTK_RELIEF_NONE, NULL);
+
+    GtkWidget *button_seek_forward = gtk_button_new_from_icon_name("media-seek-forward", GTK_ICON_SIZE_BUTTON);
+    g_object_set(button_seek_forward, "relief", GTK_RELIEF_NONE, NULL);
+    
+    GtkWidget *button_skip_forward = gtk_button_new_from_icon_name("media-skip-forward", GTK_ICON_SIZE_BUTTON);
+    g_object_set(button_skip_forward , "relief", GTK_RELIEF_NONE, NULL);
+
+    player->scale = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0, 100, 1);
+    gtk_scale_set_draw_value(GTK_SCALE (player->scale), FALSE);
 
     GtkWidget *label_player = gtk_label_new("Player");
     GtkWidget *label_guide = gtk_label_new("Guide");
     GtkWidget *label_guide2 = gtk_label_new("Guide");
 
-    gtk_grid_attach(GTK_GRID (grid_player), player->gl_area, 0, 0, 2, 1);
+    gtk_grid_attach(GTK_GRID (grid_player), player->gl_area, 0, 0, 6, 1);
     gtk_widget_set_hexpand(player->gl_area, TRUE);
     gtk_widget_set_vexpand(player->gl_area, TRUE);
 
-    gtk_grid_attach(GTK_GRID (grid_player), player->scale, 1, 1, 1, 1);
-    gtk_widget_set_hexpand(player->scale, TRUE);
+    gtk_grid_attach(GTK_GRID (grid_player), button_skip_backward, 0, 1, 1, 1);
+    g_signal_connect(button_seek_backward, "clicked", G_CALLBACK (button_seek_backward_clicked), player);
 
-    gtk_grid_attach(GTK_GRID  (grid_player), button_play_pause, 0, 1, 1, 1);
+    gtk_grid_attach(GTK_GRID (grid_player), button_seek_backward, 1, 1, 1, 1);
+    g_signal_connect(button_skip_backward, "clicked", G_CALLBACK (button_skip_backward_clicked), player);
+
+    gtk_grid_attach(GTK_GRID (grid_player), button_play_pause, 2, 1, 1, 1);
     g_signal_connect(button_play_pause, "clicked", G_CALLBACK (button_play_pause_clicked), player);
+
+    gtk_grid_attach(GTK_GRID (grid_player), button_seek_forward, 3, 1, 1, 1);
+
+    gtk_grid_attach(GTK_GRID (grid_player), button_skip_forward, 4, 1, 1, 1);
+
+    gtk_grid_attach(GTK_GRID (grid_player), player->scale, 5, 1, 1, 1);
+    gtk_widget_set_hexpand(player->scale, TRUE);
 
     gtk_notebook_set_tab_pos(GTK_NOTEBOOK (notebook), GTK_POS_TOP);
     gtk_notebook_append_page(GTK_NOTEBOOK (notebook), grid_player, label_player);
@@ -253,7 +295,7 @@ int main(int argc, char **argv) {
     mpv_init(player);
 
     const char *cmd[] = {"loadfile", argv[1], NULL};
-    mpv_command(player->handle, cmd);
+    mpv_command_async(player->handle, 0, cmd);
 
     gtk_main();
 
