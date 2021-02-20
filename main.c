@@ -23,10 +23,6 @@ struct m3u_tv_player {
     int redraw;
     int has_events;
 
-    /*
-     * Ideally would have a way to poll mpv whether it is paused instead of
-     * storing state in memory, but haven't figured that out...
-     */
     int pause;
 };
 
@@ -179,31 +175,21 @@ void seek_absolute(GtkRange *range, GtkScrollType scroll, double value, gpointer
     mpv_command_async(player->handle, 0, cmd);
 }
 
-static gchar* format_value(GtkScale *scale, gdouble value) {
-    int seconds = floor(value);
-
-    if (seconds > 3600) {
-        return g_strdup_printf("%d:%02d:%02d", seconds / 3600, (seconds / 60) % 60, seconds % 60);
-    } else {
-        return g_strdup_printf("%d:%02d", seconds / 60, seconds % 60);
-    }
-}
-
 void button_play_pause_clicked(GtkButton *button, gpointer user_data) {
     struct m3u_tv_player *player = user_data;
+    gboolean value;
 
     if (player->pause) {
-        const char *cmd[] = {"set", "pause", "no", NULL};
-        mpv_command_async(player->handle, 0, cmd);
+        value = FALSE;
         gtk_button_set_image(GTK_BUTTON (button), gtk_image_new_from_icon_name("media-playback-pause", GTK_ICON_SIZE_BUTTON));
-
         player->pause = 0;
     } else {
-        const char *cmd[] = {"set", "pause", "yes", NULL};
+        value = TRUE;
         gtk_button_set_image(GTK_BUTTON (button), gtk_image_new_from_icon_name("media-playback-start", GTK_ICON_SIZE_BUTTON));
-        mpv_command_async(player->handle, 0, cmd);
         player->pause = 1;
     }
+
+    mpv_set_property(player->handle, "pause", MPV_FORMAT_FLAG, &value);
 }
 
 void button_seek_backward_clicked(GtkButton *button, gpointer user_data) {
