@@ -2,7 +2,8 @@ CC ?= gcc
 CFLAGS += -g -Wall -pedantic `pkg-config --cflags mpv gtk+-3.0 epoxy`
 LDLIBS += `pkg-config --libs mpv gtk+-3.0 epoxy` -lm
 
-SRC = main.c
+SRC = main.c \
+	  m3u-tv-player.c
 
 OBJ = $(SRC:.c=.o)
 
