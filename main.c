@@ -1,7 +1,3 @@
-#include <stdio.h>
-#include <locale.h>
-#include <math.h>
-
 #include <gtk/gtk.h>
 
 #include <epoxy/glx.h>

@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <locale.h>
-#include <math.h>
 
 #include <gtk/gtk.h>
 
@@ -11,6 +10,28 @@
 #include <mpv/render_gl.h>
 
 #include "m3u-tv-player.h"
+
+static void *get_proc_address(void *fn_ctx, const gchar *name) {
+    GdkDisplay *display = gdk_display_get_default();
+
+#ifdef GDK_WINDOWING_WAYLAND
+    if (GDK_IS_WAYLAND_DISPLAY(display)) {
+        return eglGetProcAddress(name);
+    }
+#endif
+#ifdef GDK_WINDOWING_X11
+    if (GDK_IS_X11_DISPLAY(display)) {
+        return (void *)(intptr_t) glXGetProcAddressARB((const GLubyte *)name);
+    }
+#endif
+#ifdef GDK_WINDOWING_WIN32
+    if (GDK_IS_WIN32_DISPLAY(display)) {
+        return wglGetProcAddress(name);
+    }
+#endif
+    g_assert_not_reached();
+    return NULL;
+}
 
 static void on_mpv_events(void *ctx) {
     struct m3u_tv_player *player = (struct m3u_tv_player*) ctx;
@@ -55,28 +76,6 @@ void process_events(struct m3u_tv_player* player) {
     }
 }
 
-static void *get_proc_address(void *fn_ctx, const gchar *name) {
-    GdkDisplay *display = gdk_display_get_default();
-
-#ifdef GDK_WINDOWING_WAYLAND
-    if (GDK_IS_WAYLAND_DISPLAY(display)) {
-        return eglGetProcAddress(name);
-    }
-#endif
-#ifdef GDK_WINDOWING_X11
-    if (GDK_IS_X11_DISPLAY(display)) {
-        return (void *)(intptr_t) glXGetProcAddressARB((const GLubyte *)name);
-    }
-#endif
-#ifdef GDK_WINDOWING_WIN32
-    if (GDK_IS_WIN32_DISPLAY(display)) {
-        return wglGetProcAddress(name);
-    }
-#endif
-    g_assert_not_reached();
-    return NULL;
-}
-
 void mpv_init(struct m3u_tv_player *player) {
     setlocale(LC_NUMERIC, "C");
     player->handle = mpv_create();
@@ -105,5 +104,3 @@ void mpv_init(struct m3u_tv_player *player) {
     mpv_set_wakeup_callback(player->handle, on_mpv_events, player);
     mpv_render_context_set_update_callback(player->render_context, on_mpv_render_update, player);
 }
-
-
