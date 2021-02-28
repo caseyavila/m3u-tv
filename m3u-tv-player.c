@@ -8,7 +8,6 @@
 
 #include <mpv/client.h>
 #include <mpv/render_gl.h>
-#include <pthread.h>
 
 #include "m3u-tv-player.h"
 
@@ -34,17 +33,18 @@ static void *get_proc_address(void *fn_ctx, const gchar *name) {
     return NULL;
 }
 
-void *my_thread_loop(void *input) {
-    struct m3u_tv_player *player = (struct m3u_tv_player*) input;
+gboolean process_events(gpointer data) {
+    struct m3u_tv_player *player = (struct m3u_tv_player*) data;
+    int done = 0;
 
-    while (1) {
-        mpv_event *event = mpv_wait_event(player->handle, -1);
-
-        if (player->shutdown) {
-            break;
-        }
+    while (!done) {
+        mpv_event *event = mpv_wait_event(player->handle, 0);
 
         switch (event->event_id) {
+            case MPV_EVENT_NONE:
+                done = 1;
+                break;
+
             case MPV_EVENT_LOG_MESSAGE:
                 printf("log: %s", ((mpv_event_log_message *) event->data)->text);
                 break;
@@ -65,13 +65,16 @@ void *my_thread_loop(void *input) {
         }
     }
 
-    return NULL;
+    return FALSE;
+}
+
+static void on_mpv_events(void *ctx) {
+    g_idle_add_full(G_PRIORITY_HIGH_IDLE, process_events, ctx, NULL);
 }
 
 void mpv_init(struct m3u_tv_player *player) {
     setlocale(LC_NUMERIC, "C");
     player->handle = mpv_create();
-    player->shutdown = 0;
     player->pause = 0;
 
     mpv_initialize(player->handle);
@@ -92,6 +95,5 @@ void mpv_init(struct m3u_tv_player *player) {
     mpv_observe_property(player->handle, 0, "duration", MPV_FORMAT_DOUBLE);
     mpv_observe_property(player->handle, 0, "time-pos", MPV_FORMAT_DOUBLE);
 
-    pthread_t event_thread;
-    pthread_create(&event_thread, NULL, my_thread_loop, player);
+    mpv_set_wakeup_callback(player->handle, on_mpv_events, player);
 }

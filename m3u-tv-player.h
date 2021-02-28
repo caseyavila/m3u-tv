@@ -11,8 +11,6 @@ struct m3u_tv_player {
     int width;
     int height;
 
-    int shutdown;
-
     int pause;
 };
 

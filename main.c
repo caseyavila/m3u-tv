@@ -34,7 +34,6 @@ static gboolean render(GtkGLArea *area, GdkGLContext *context, gpointer user_dat
 }
 
 static void realize(GtkGLArea *area) {
-    printf("GTK: realize\n");
     gtk_gl_area_make_current(area);
 }
 
@@ -136,9 +135,7 @@ int main(int argc, char **argv) {
     g_signal_connect(player->gl_area, "render", G_CALLBACK (render), player);
     g_signal_connect(player->gl_area, "realize", G_CALLBACK (realize), NULL);
     g_signal_connect(player->gl_area, "resize", G_CALLBACK (resize), player);
-
     g_signal_connect(GTK_RANGE (player->scale), "change-value", G_CALLBACK(seek_absolute), player);
-
     g_signal_connect(button_seek_backward, "clicked", G_CALLBACK (button_seek_backward_clicked), player);
     g_signal_connect(button_play_pause, "clicked", G_CALLBACK (button_play_pause_clicked), player);
     g_signal_connect(button_seek_forward, "clicked", G_CALLBACK (button_seek_forward_clicked), player);
@@ -153,9 +150,9 @@ int main(int argc, char **argv) {
 
     gtk_main();
 
-    player->shutdown = 1;
     mpv_render_context_free(player->render_context);
     mpv_detach_destroy(player->handle);
+    free(player);
 
     return 0;
 }
