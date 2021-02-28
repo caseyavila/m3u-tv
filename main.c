@@ -11,11 +11,6 @@
 static gboolean render(GtkGLArea *area, GdkGLContext *context, gpointer user_data) {
     struct m3u_tv_player *player = user_data;
 
-    if (player->has_events) {
-        process_events(player);
-        player->has_events = 0;
-    }
-
     // Render frame
     if ((mpv_render_context_update(player->render_context) & MPV_RENDER_UPDATE_FRAME)) {
         gint fbo = -1;
@@ -31,8 +26,6 @@ static gboolean render(GtkGLArea *area, GdkGLContext *context, gpointer user_dat
         };
 
         mpv_render_context_render(player->render_context, params);
-
-        player->redraw = 0;
     }
 
     gtk_gl_area_queue_render(area);
@@ -160,6 +153,7 @@ int main(int argc, char **argv) {
 
     gtk_main();
 
+    player->shutdown = 1;
     mpv_render_context_free(player->render_context);
     mpv_detach_destroy(player->handle);
 

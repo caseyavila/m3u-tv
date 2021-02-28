@@ -11,11 +11,9 @@ struct m3u_tv_player {
     int width;
     int height;
 
-    int redraw;
-    int has_events;
+    int shutdown;
 
     int pause;
 };
 
 void mpv_init(struct m3u_tv_player* player);
-void process_events(struct m3u_tv_player* player);
