@@ -45,10 +45,6 @@ void *my_thread_loop(void *input) {
         }
 
         switch (event->event_id) {
-            case MPV_EVENT_SHUTDOWN:
-                printf("FUCKOSDJF\n");
-                break;
-
             case MPV_EVENT_LOG_MESSAGE:
                 printf("log: %s", ((mpv_event_log_message *) event->data)->text);
                 break;
