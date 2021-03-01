@@ -14,4 +14,4 @@ struct m3u_tv_player {
     int pause;
 };
 
-void mpv_init(struct m3u_tv_player* player);
+void mpv_init(struct m3u_tv_player *player);

@@ -78,7 +78,7 @@ void mpv_init(struct m3u_tv_player *player) {
     player->pause = 0;
 
     mpv_initialize(player->handle);
-    mpv_request_log_messages(player->handle, "debug");
+    //mpv_request_log_messages(player->handle, "debug");
 
     mpv_render_param params[] = {
         {MPV_RENDER_PARAM_API_TYPE, MPV_RENDER_API_TYPE_OPENGL},

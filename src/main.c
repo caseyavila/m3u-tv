@@ -7,6 +7,7 @@
 #include <mpv/render_gl.h>
 
 #include "m3u-tv-player.h"
+#include "tv-data.h"
 
 static gboolean render(GtkGLArea *area, GdkGLContext *context, gpointer user_data) {
     struct m3u_tv_player *player = user_data;
@@ -147,6 +148,13 @@ int main(int argc, char **argv) {
 
     const char *cmd[] = {"loadfile", argv[1], NULL};
     mpv_command_async(player->handle, 0, cmd);
+
+    struct tv_data data = get_tv_data();
+    for (int i = 0; i < data.channel_amount; i++) {
+        printf("%s\n", data.channels[i].uri);
+    }
+
+    printf("%d\n", data.channel_amount);
 
     gtk_main();
 
