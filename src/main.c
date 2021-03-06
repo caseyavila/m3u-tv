@@ -150,11 +150,6 @@ int main(int argc, char **argv) {
     mpv_command_async(player->handle, 0, cmd);
 
     struct tv_data data = get_tv_data();
-    for (int i = 0; i < data.channel_amount; i++) {
-        printf("%s\n", data.channels[i].uri);
-    }
-
-    printf("%d\n", data.channel_amount);
 
     gtk_main();
 
