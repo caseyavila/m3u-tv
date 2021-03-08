@@ -86,12 +86,22 @@ void button_seek_forward_clicked(GtkButton *button, gpointer user_data) {
     mpv_command_async(player->handle, 0, cmd);
 }
 
-int main(int argc, char **argv) {
-    if (argc < 2) {
-        printf("Please supply a video file name...\n");
-        exit(1);
-    }
+void
+channel_clicked(GtkTreeView *tree_view, GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data) {
+    struct m3u_tv_player *player = user_data;
+    GtkTreeModel *model = gtk_tree_view_get_model(tree_view);
+    GtkTreeIter iter;
 
+    if (gtk_tree_model_get_iter(model, &iter, path)) {
+        gchar *uri;
+        gtk_tree_model_get(model, &iter, 2, &uri, -1);
+        const char *cmd[] = {"loadfile", uri, NULL};
+        mpv_command_async(player->handle, 0, cmd);
+        g_free(uri);
+    }
+}
+
+int main(int argc, char **argv) {
     gtk_init(&argc, &argv);
 
     struct m3u_tv_player *player = malloc(sizeof *player);
@@ -115,7 +125,6 @@ int main(int argc, char **argv) {
 
     GtkWidget *label_player = gtk_label_new("Player");
     GtkWidget *label_guide = gtk_label_new("Guide");
-    GtkWidget *label_guide2 = gtk_label_new("Guide");
 
     gtk_grid_attach(GTK_GRID (grid_player), player->gl_area, 0, 0, 4, 1);
     gtk_widget_set_hexpand(player->gl_area, TRUE);
@@ -130,7 +139,6 @@ int main(int argc, char **argv) {
 
     gtk_notebook_set_tab_pos(GTK_NOTEBOOK (notebook), GTK_POS_TOP);
     gtk_notebook_append_page(GTK_NOTEBOOK (notebook), grid_player, label_player);
-    gtk_notebook_append_page(GTK_NOTEBOOK (notebook), label_guide2, label_guide);
 
     g_signal_connect(window, "delete-event", G_CALLBACK (gtk_main_quit), NULL);
     g_signal_connect(player->gl_area, "render", G_CALLBACK (render), player);
@@ -141,15 +149,34 @@ int main(int argc, char **argv) {
     g_signal_connect(button_play_pause, "clicked", G_CALLBACK (button_play_pause_clicked), player);
     g_signal_connect(button_seek_forward, "clicked", G_CALLBACK (button_seek_forward_clicked), player);
     
+    struct tv_data data = get_tv_data();
+    GtkListStore *store = gtk_list_store_new(3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+    GtkTreeIter iter;
+    GtkWidget *tree_view = gtk_tree_view_new_with_model(GTK_TREE_MODEL (store));
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW (tree_view), -1, "Number", gtk_cell_renderer_text_new(), "text", 0, NULL);
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW (tree_view), -1, "Name", gtk_cell_renderer_text_new(), "text", 1, NULL);
+
+    for (int i = 0; i < data.channel_amount; i++) {
+        gtk_list_store_append(store, &iter);
+        gtk_list_store_set(store, &iter, 0, data.channels[i].number, 1, data.channels[i].name, 2, data.channels[i].uri, -1);
+    }
+
+    g_signal_connect(tree_view, "row-activated", G_CALLBACK (channel_clicked), player);
+
+    GtkWidget *scroll = gtk_scrolled_window_new(NULL, NULL);
+    gtk_container_add(GTK_CONTAINER(scroll), GTK_WIDGET(tree_view));
+
+    gtk_notebook_append_page(GTK_NOTEBOOK (notebook), scroll, label_guide);
+
     gtk_container_add(GTK_CONTAINER (window), notebook);
     gtk_widget_show_all(window);
 
     mpv_init(player);
-
-    const char *cmd[] = {"loadfile", argv[1], NULL};
-    mpv_command_async(player->handle, 0, cmd);
-
-    struct tv_data data = get_tv_data();
+    if (argc == 2) {
+        printf("Playing file path from stdin...\n");
+        const char *cmd[] = {"loadfile", argv[1], NULL};
+        mpv_command_async(player->handle, 0, cmd);
+    }
 
     gtk_main();
 
