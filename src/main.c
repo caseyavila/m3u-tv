@@ -140,6 +140,20 @@ int main(int argc, char **argv) {
     gtk_notebook_set_tab_pos(GTK_NOTEBOOK (notebook), GTK_POS_TOP);
     gtk_notebook_append_page(GTK_NOTEBOOK (notebook), grid_player, label_player);
 
+    struct tv_data data = get_tv_data();
+    GtkListStore *store = gtk_list_store_new(3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+    GtkTreeIter iter;
+    GtkWidget *tree_view = gtk_tree_view_new_with_model(GTK_TREE_MODEL (store));
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW (tree_view), -1, "Number", gtk_cell_renderer_text_new(), "text", 0, NULL);
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW (tree_view), -1, "Name", gtk_cell_renderer_text_new(), "text", 1, NULL);
+    GtkWidget *scroll = gtk_scrolled_window_new(NULL, NULL);
+    gtk_container_add(GTK_CONTAINER(scroll), GTK_WIDGET(tree_view));
+
+    for (int i = 0; i < data.channel_amount; i++) {
+        gtk_list_store_append(store, &iter);
+        gtk_list_store_set(store, &iter, 0, data.channels[i].number, 1, data.channels[i].name, 2, data.channels[i].uri, -1);
+    }
+
     g_signal_connect(window, "delete-event", G_CALLBACK (gtk_main_quit), NULL);
     g_signal_connect(player->gl_area, "render", G_CALLBACK (render), player);
     g_signal_connect(player->gl_area, "realize", G_CALLBACK (realize), NULL);
@@ -148,23 +162,7 @@ int main(int argc, char **argv) {
     g_signal_connect(button_seek_backward, "clicked", G_CALLBACK (button_seek_backward_clicked), player);
     g_signal_connect(button_play_pause, "clicked", G_CALLBACK (button_play_pause_clicked), player);
     g_signal_connect(button_seek_forward, "clicked", G_CALLBACK (button_seek_forward_clicked), player);
-    
-    struct tv_data data = get_tv_data();
-    GtkListStore *store = gtk_list_store_new(3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
-    GtkTreeIter iter;
-    GtkWidget *tree_view = gtk_tree_view_new_with_model(GTK_TREE_MODEL (store));
-    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW (tree_view), -1, "Number", gtk_cell_renderer_text_new(), "text", 0, NULL);
-    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW (tree_view), -1, "Name", gtk_cell_renderer_text_new(), "text", 1, NULL);
-
-    for (int i = 0; i < data.channel_amount; i++) {
-        gtk_list_store_append(store, &iter);
-        gtk_list_store_set(store, &iter, 0, data.channels[i].number, 1, data.channels[i].name, 2, data.channels[i].uri, -1);
-    }
-
     g_signal_connect(tree_view, "row-activated", G_CALLBACK (channel_clicked), player);
-
-    GtkWidget *scroll = gtk_scrolled_window_new(NULL, NULL);
-    gtk_container_add(GTK_CONTAINER(scroll), GTK_WIDGET(tree_view));
 
     gtk_notebook_append_page(GTK_NOTEBOOK (notebook), scroll, label_guide);
 
