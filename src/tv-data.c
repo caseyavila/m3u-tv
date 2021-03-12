@@ -29,8 +29,12 @@ struct tv_data get_tv_data() {
             char channel_number[1024];
             char channel_name[1024];
 
-            // Don't worry about it...
-            //sscanf(char_buffer, "%*[^chno=\"]chno=\"%[^\"]", channel_number);
+            /*
+             * Don't worry about it...
+             * Eventually gonna want to figure out how to set up a proper parser
+             * or "state machine" whatever that means...
+             */
+
             sscanf(char_buffer, "#EXTINF:-1 tvg-chno=\"%[^\"]\" tvg-name=\"%[^\"]\"", channel_number, channel_name);
 
             channels = realloc(channels, (channel_amount + 1) * sizeof(struct channel));

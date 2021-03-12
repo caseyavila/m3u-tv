@@ -96,6 +96,7 @@ channel_clicked(GtkTreeView *tree_view, GtkTreePath *path, GtkTreeViewColumn *co
         gchar *uri;
         gtk_tree_model_get(model, &iter, 2, &uri, -1);
         const char *cmd[] = {"loadfile", uri, NULL};
+        printf("Trying to load: %s\n", uri);
         mpv_command_async(player->handle, 0, cmd);
         g_free(uri);
     }
