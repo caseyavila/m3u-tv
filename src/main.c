@@ -116,10 +116,12 @@ int main(int argc, char **argv) {
     GtkWidget *button_seek_backward = gtk_button_new_from_icon_name("media-seek-backward", GTK_ICON_SIZE_BUTTON);
     GtkWidget *button_play_pause = gtk_button_new_from_icon_name("media-playback-pause", GTK_ICON_SIZE_BUTTON);
     GtkWidget *button_seek_forward = gtk_button_new_from_icon_name("media-seek-forward", GTK_ICON_SIZE_BUTTON);
+    GtkWidget *button_volume= gtk_button_new_from_icon_name("audio-volume-high", GTK_ICON_SIZE_BUTTON);
 
     g_object_set(button_seek_forward, "relief", GTK_RELIEF_NONE, NULL);
     g_object_set(button_seek_backward, "relief", GTK_RELIEF_NONE, NULL);
     g_object_set(button_play_pause, "relief", GTK_RELIEF_NONE, NULL);
+    g_object_set(button_volume, "relief", GTK_RELIEF_NONE, NULL);
 
     player->scale = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0, 100, 1);
     gtk_scale_set_draw_value(GTK_SCALE (player->scale), FALSE);
@@ -127,13 +129,14 @@ int main(int argc, char **argv) {
     GtkWidget *label_player = gtk_label_new("Player");
     GtkWidget *label_guide = gtk_label_new("Guide");
 
-    gtk_grid_attach(GTK_GRID (grid_player), player->gl_area, 0, 0, 4, 1);
+    gtk_grid_attach(GTK_GRID (grid_player), player->gl_area, 0, 0, 5, 1);
     gtk_widget_set_hexpand(player->gl_area, TRUE);
     gtk_widget_set_vexpand(player->gl_area, TRUE);
 
     gtk_grid_attach(GTK_GRID (grid_player), button_seek_backward, 0, 1, 1, 1);
     gtk_grid_attach(GTK_GRID (grid_player), button_play_pause, 1, 1, 1, 1);
     gtk_grid_attach(GTK_GRID (grid_player), button_seek_forward, 2, 1, 1, 1);
+    gtk_grid_attach(GTK_GRID (grid_player), button_volume, 4, 1, 1, 1);
 
     gtk_grid_attach(GTK_GRID (grid_player), player->scale, 3, 1, 1, 1);
     gtk_widget_set_hexpand(player->scale, TRUE);
