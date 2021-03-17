@@ -142,16 +142,8 @@ void setup_guide(GtkWidget *notebook, struct m3u_tv_player *player, struct tv_da
     gtk_notebook_append_page(GTK_NOTEBOOK (notebook), scroll, label_guide);
 }
 
-int main(int argc, char **argv) {
-    gtk_init(&argc, &argv);
-
-    struct m3u_tv_player *player = malloc(sizeof *player);
-
-    GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    GtkWidget *notebook = gtk_notebook_new();
+void setup_player(GtkWidget *notebook, struct m3u_tv_player *player) {
     GtkWidget *grid_player = gtk_grid_new();
-
-    add_buttons(grid_player, player);
 
     player->gl_area = gtk_gl_area_new();
 
@@ -170,14 +162,27 @@ int main(int argc, char **argv) {
     gtk_notebook_set_tab_pos(GTK_NOTEBOOK (notebook), GTK_POS_TOP);
     gtk_notebook_append_page(GTK_NOTEBOOK (notebook), grid_player, label_player);
 
-    struct tv_data data = get_tv_data();
-    setup_guide(notebook, player, data);
-
-    g_signal_connect(window, "delete-event", G_CALLBACK (gtk_main_quit), NULL);
     g_signal_connect(player->gl_area, "render", G_CALLBACK (render), player);
     g_signal_connect(player->gl_area, "realize", G_CALLBACK (realize), NULL);
     g_signal_connect(player->gl_area, "resize", G_CALLBACK (resize), player);
     g_signal_connect(GTK_RANGE (player->scale), "change-value", G_CALLBACK(seek_absolute), player);
+
+    add_buttons(grid_player, player);
+}
+
+int main(int argc, char **argv) {
+    gtk_init(&argc, &argv);
+
+    GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    GtkWidget *notebook = gtk_notebook_new();
+
+    struct m3u_tv_player *player = malloc(sizeof *player);
+    setup_player(notebook, player);
+
+    struct tv_data data = get_tv_data();
+    setup_guide(notebook, player, data);
+
+    g_signal_connect(window, "delete-event", G_CALLBACK (gtk_main_quit), NULL);
 
     gtk_container_add(GTK_CONTAINER (window), notebook);
     gtk_widget_show_all(window);
