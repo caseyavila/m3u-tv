@@ -15,7 +15,7 @@ FILE *read_channel_file(void) {
 }
 
 struct tv_data get_tv_data() {
-    struct channel *channels = malloc(24);
+    struct channel *channels = malloc(sizeof(struct channel));
     int channel_amount = 0;
 
     int buffer_length = 1024;
@@ -28,12 +28,6 @@ struct tv_data get_tv_data() {
         if (strncmp(char_buffer, "#EXTINF:", strlen("#EXTINF:")) == 0) {
             char channel_number[1024];
             char channel_name[1024];
-
-            /*
-             * Don't worry about it...
-             * Eventually gonna want to figure out how to set up a proper parser
-             * or "state machine" whatever that means...
-             */
 
             sscanf(char_buffer, "#EXTINF:-1 tvg-chno=\"%[^\"]\" tvg-name=\"%[^\"]\"", channel_number, channel_name);
 
@@ -55,4 +49,7 @@ struct tv_data get_tv_data() {
     fclose(channel_file);
 
     return (struct tv_data) {channel_amount, channels};
+}
+
+void free_tv_data() {
 }
