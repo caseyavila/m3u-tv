@@ -144,8 +144,7 @@ void setup_guide(GtkWidget *notebook, struct m3u_tv_player *player, struct tv_da
 
 void setup_label(GtkWidget *grid_player, struct m3u_tv_player *player) {
     player->label.duration = 0;
-    player->label.time = 0;
-    player->label.label = gtk_label_new("hi");
+    player->label.label = gtk_label_new(NULL);
 
     gtk_grid_attach(GTK_GRID (grid_player), player->label.label, 3, 1, 1, 1);
 }
