@@ -4,7 +4,6 @@
 struct time_label {
     GtkWidget *label;
     double duration;
-    double time;
 };
 
 struct m3u_tv_player {
@@ -23,5 +22,3 @@ struct m3u_tv_player {
 };
 
 void mpv_init(struct m3u_tv_player *player);
-
-static void update_label(struct time_label label);

@@ -17,19 +17,16 @@ char *format_time(double seconds, gboolean show_hour) {
 	char *result = NULL;
 
 	if (show_hour) {
-		result = g_strdup_printf(	"%02d:%02d:%02d",
-						seconds_int/3600,
-						(seconds_int%3600)/60,
-						seconds_int%60 );
+		result = g_strdup_printf("%02d:%02d:%02d", seconds_int / 3600, (seconds_int % 3600) / 60, seconds_int % 60);
 	} else {
-		result = g_strdup_printf("%02d:%02d", seconds_int/60, seconds_int%60);
+		result = g_strdup_printf("%02d:%02d", seconds_int / 60, seconds_int % 60);
 	}
 
 	return result;
 }
 
-static void update_label(struct time_label label) {
-	int sec = floor(label.time);
+static void update_label(struct time_label label, double time) {
+	int sec = floor(time);
 	int duration = floor(label.duration);
 	char *text;
 
@@ -94,8 +91,7 @@ gboolean process_events(gpointer data) {
                         player->label.duration = *(double *) prop->data;
                     } else if (strcmp(prop->name, "time-pos") == 0) {
                         gtk_range_set_value(GTK_RANGE (player->scale), *(double *) prop->data);
-                        player->label.time = *(double *) prop->data;
-                        update_label(player->label);
+                        update_label(player->label, *(double *) prop->data);
                     }
                 }
             }
