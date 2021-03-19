@@ -50,6 +50,3 @@ struct tv_data get_tv_data() {
 
     return (struct tv_data) {channel_amount, channels};
 }
-
-void free_tv_data() {
-}

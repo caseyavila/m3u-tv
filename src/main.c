@@ -115,7 +115,7 @@ void add_buttons(GtkWidget *grid_player, struct m3u_tv_player *player) {
     gtk_grid_attach(GTK_GRID (grid_player), button_seek_backward, 0, 1, 1, 1);
     gtk_grid_attach(GTK_GRID (grid_player), button_play_pause, 1, 1, 1, 1);
     gtk_grid_attach(GTK_GRID (grid_player), button_seek_forward, 2, 1, 1, 1);
-    gtk_grid_attach(GTK_GRID (grid_player), button_volume, 4, 1, 1, 1);
+    gtk_grid_attach(GTK_GRID (grid_player), button_volume, 5, 1, 1, 1);
 
     g_signal_connect(button_seek_backward, "clicked", G_CALLBACK (button_seek_backward_clicked), player);
     g_signal_connect(button_play_pause, "clicked", G_CALLBACK (button_play_pause_clicked), player);
@@ -124,13 +124,13 @@ void add_buttons(GtkWidget *grid_player, struct m3u_tv_player *player) {
 
 void setup_guide(GtkWidget *notebook, struct m3u_tv_player *player, struct tv_data data) {
     GtkListStore *store = gtk_list_store_new(3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
-    GtkTreeIter iter;
     GtkWidget *tree_view = gtk_tree_view_new_with_model(GTK_TREE_MODEL (store));
     GtkWidget *label_guide = gtk_label_new("Guide");
+    GtkWidget *scroll = gtk_scrolled_window_new(NULL, NULL);
+    GtkTreeIter iter;
 
     gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW (tree_view), -1, "Number", gtk_cell_renderer_text_new(), "text", 0, NULL);
     gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW (tree_view), -1, "Name", gtk_cell_renderer_text_new(), "text", 1, NULL);
-    GtkWidget *scroll = gtk_scrolled_window_new(NULL, NULL);
     gtk_container_add(GTK_CONTAINER(scroll), GTK_WIDGET(tree_view));
 
     for (int i = 0; i < data.channel_amount; i++) {
@@ -142,21 +142,28 @@ void setup_guide(GtkWidget *notebook, struct m3u_tv_player *player, struct tv_da
     gtk_notebook_append_page(GTK_NOTEBOOK (notebook), scroll, label_guide);
 }
 
+void setup_label(GtkWidget *grid_player, struct m3u_tv_player *player) {
+    player->label.duration = 0;
+    player->label.time = 0;
+    player->label.label = gtk_label_new("hi");
+
+    gtk_grid_attach(GTK_GRID (grid_player), player->label.label, 3, 1, 1, 1);
+}
+
 void setup_player(GtkWidget *notebook, struct m3u_tv_player *player) {
     GtkWidget *grid_player = gtk_grid_new();
+    GtkWidget *label_player = gtk_label_new("Player");
 
     player->gl_area = gtk_gl_area_new();
 
     player->scale = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0, 100, 1);
     gtk_scale_set_draw_value(GTK_SCALE (player->scale), FALSE);
 
-    GtkWidget *label_player = gtk_label_new("Player");
-
-    gtk_grid_attach(GTK_GRID (grid_player), player->gl_area, 0, 0, 5, 1);
+    gtk_grid_attach(GTK_GRID (grid_player), player->gl_area, 0, 0, 6, 1);
     gtk_widget_set_hexpand(player->gl_area, TRUE);
     gtk_widget_set_vexpand(player->gl_area, TRUE);
 
-    gtk_grid_attach(GTK_GRID (grid_player), player->scale, 3, 1, 1, 1);
+    gtk_grid_attach(GTK_GRID (grid_player), player->scale, 4, 1, 1, 1);
     gtk_widget_set_hexpand(player->scale, TRUE);
 
     gtk_notebook_set_tab_pos(GTK_NOTEBOOK (notebook), GTK_POS_TOP);
@@ -168,6 +175,7 @@ void setup_player(GtkWidget *notebook, struct m3u_tv_player *player) {
     g_signal_connect(GTK_RANGE (player->scale), "change-value", G_CALLBACK(seek_absolute), player);
 
     add_buttons(grid_player, player);
+    setup_label(grid_player, player);
 }
 
 int main(int argc, char **argv) {
