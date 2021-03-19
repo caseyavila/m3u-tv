@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <locale.h>
+#include <math.h>
 
 #include <gtk/gtk.h>
 
@@ -10,6 +11,42 @@
 #include <mpv/render_gl.h>
 
 #include "m3u-tv-player.h"
+
+char *format_time(double seconds, gboolean show_hour) {
+    int seconds_int = floor(seconds);
+	char *result = NULL;
+
+	if (show_hour) {
+		result = g_strdup_printf(	"%02d:%02d:%02d",
+						seconds_int/3600,
+						(seconds_int%3600)/60,
+						seconds_int%60 );
+	} else {
+		result = g_strdup_printf("%02d:%02d", seconds_int/60, seconds_int%60);
+	}
+
+	return result;
+}
+
+static void update_label(struct time_label label) {
+	int sec = floor(label.time);
+	int duration = floor(label.duration);
+	char *text;
+
+	if (duration > 0) {
+		gchar *sec_str = format_time(sec, duration >= 3600);
+		gchar *duration_str = format_time(duration, duration >= 3600);
+
+		text = g_strdup_printf("%s/%s", sec_str, duration_str);
+
+		g_free(sec_str);
+		g_free(duration_str);
+	} else {
+		text = g_strdup_printf("%02d:%02d", (sec%3600)/60, sec%60);
+	}
+
+	gtk_label_set_text(GTK_LABEL (label.label), text);
+}
 
 static void *get_proc_address(void *fn_ctx, const gchar *name) {
     GdkDisplay *display = gdk_display_get_default();
@@ -54,8 +91,11 @@ gboolean process_events(gpointer data) {
                 if (prop->format == MPV_FORMAT_DOUBLE) {
                     if (strcmp(prop->name, "duration") == 0) {
                         gtk_range_set_range(GTK_RANGE (player->scale), 0, *(double *) prop->data);
+                        player->label.duration = *(double *) prop->data;
                     } else if (strcmp(prop->name, "time-pos") == 0) {
                         gtk_range_set_value(GTK_RANGE (player->scale), *(double *) prop->data);
+                        player->label.time = *(double *) prop->data;
+                        update_label(player->label);
                     }
                 }
             }
