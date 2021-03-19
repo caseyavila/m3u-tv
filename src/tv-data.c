@@ -8,8 +8,11 @@ FILE *read_channel_file(void) {
     char *directory = getenv("HOME");
     strcat(directory, "/.local/share/m3u-tv/channels.m3u");
 
-    FILE *channel_file;
-    channel_file = fopen(directory, "r");
+    FILE *channel_file = fopen(directory, "r");
+    if (channel_file == NULL) {
+        perror("Error opening m3u file");
+        exit(1);
+    }
 
     return channel_file;
 }
