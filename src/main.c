@@ -103,23 +103,27 @@ void channel_clicked(GtkTreeView *tree_view, GtkTreePath *path, GtkTreeViewColum
 
 void add_buttons(GtkWidget *grid_player, struct m3u_tv_player *player) {
     GtkWidget *button_seek_backward = gtk_button_new_from_icon_name("media-seek-backward", GTK_ICON_SIZE_BUTTON);
-    GtkWidget *button_play_pause = gtk_button_new_from_icon_name("media-playback-pause", GTK_ICON_SIZE_BUTTON);
-    GtkWidget *button_seek_forward = gtk_button_new_from_icon_name("media-seek-forward", GTK_ICON_SIZE_BUTTON);
-    GtkWidget *button_volume = gtk_button_new_from_icon_name("audio-volume-high", GTK_ICON_SIZE_BUTTON);
-
     g_object_set(button_seek_backward, "relief", GTK_RELIEF_NONE, NULL);
-    g_object_set(button_play_pause, "relief", GTK_RELIEF_NONE, NULL);
-    g_object_set(button_seek_forward, "relief", GTK_RELIEF_NONE, NULL);
-    g_object_set(button_volume, "relief", GTK_RELIEF_NONE, NULL);
-
     gtk_grid_attach(GTK_GRID (grid_player), button_seek_backward, 0, 1, 1, 1);
-    gtk_grid_attach(GTK_GRID (grid_player), button_play_pause, 1, 1, 1, 1);
-    gtk_grid_attach(GTK_GRID (grid_player), button_seek_forward, 2, 1, 1, 1);
-    gtk_grid_attach(GTK_GRID (grid_player), button_volume, 5, 1, 1, 1);
-
+    gtk_widget_set_can_focus(button_seek_backward, False);
     g_signal_connect(button_seek_backward, "clicked", G_CALLBACK (button_seek_backward_clicked), player);
+
+    GtkWidget *button_play_pause = gtk_button_new_from_icon_name("media-playback-pause", GTK_ICON_SIZE_BUTTON);
+    g_object_set(button_play_pause, "relief", GTK_RELIEF_NONE, NULL);
+    gtk_grid_attach(GTK_GRID (grid_player), button_play_pause, 1, 1, 1, 1);
+    gtk_widget_set_can_focus(button_play_pause, False);
     g_signal_connect(button_play_pause, "clicked", G_CALLBACK (button_play_pause_clicked), player);
+
+    GtkWidget *button_seek_forward = gtk_button_new_from_icon_name("media-seek-forward", GTK_ICON_SIZE_BUTTON);
+    g_object_set(button_seek_forward, "relief", GTK_RELIEF_NONE, NULL);
+    gtk_grid_attach(GTK_GRID (grid_player), button_seek_forward, 2, 1, 1, 1);
+    gtk_widget_set_can_focus(button_seek_forward, False);
     g_signal_connect(button_seek_forward, "clicked", G_CALLBACK (button_seek_forward_clicked), player);
+
+    GtkWidget *button_volume = gtk_button_new_from_icon_name("audio-volume-high", GTK_ICON_SIZE_BUTTON);
+    g_object_set(button_volume, "relief", GTK_RELIEF_NONE, NULL);
+    gtk_grid_attach(GTK_GRID (grid_player), button_volume, 5, 1, 1, 1);
+    gtk_widget_set_can_focus(button_volume, False);
 }
 
 void setup_guide(GtkWidget *notebook, struct m3u_tv_player *player, struct tv_data data) {
@@ -144,7 +148,7 @@ void setup_guide(GtkWidget *notebook, struct m3u_tv_player *player, struct tv_da
 
 void setup_label(GtkWidget *grid_player, struct m3u_tv_player *player) {
     player->label.duration = 0;
-    player->label.label = gtk_label_new(NULL);
+    player->label.label = gtk_label_new("");
 
     gtk_grid_attach(GTK_GRID (grid_player), player->label.label, 3, 1, 1, 1);
 }
@@ -157,6 +161,7 @@ void setup_player(GtkWidget *notebook, struct m3u_tv_player *player) {
 
     player->scale = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0, 100, 1);
     gtk_scale_set_draw_value(GTK_SCALE (player->scale), FALSE);
+    gtk_widget_set_can_focus(player->scale, False);
 
     gtk_grid_attach(GTK_GRID (grid_player), player->gl_area, 0, 0, 6, 1);
     gtk_widget_set_hexpand(player->gl_area, TRUE);
@@ -182,6 +187,7 @@ int main(int argc, char **argv) {
 
     GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     GtkWidget *notebook = gtk_notebook_new();
+    gtk_widget_set_can_focus(notebook, False);
 
     struct m3u_tv_player *player = malloc(sizeof *player);
     setup_player(notebook, player);
@@ -190,7 +196,6 @@ int main(int argc, char **argv) {
     setup_guide(notebook, player, data);
 
     g_signal_connect(window, "delete-event", G_CALLBACK (gtk_main_quit), NULL);
-
     gtk_container_add(GTK_CONTAINER (window), notebook);
     gtk_widget_show_all(window);
 
