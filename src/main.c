@@ -8,6 +8,7 @@
 
 #include "m3u-tv-player.h"
 #include "tv-data.h"
+#include "guide-data.h"
 
 static gboolean render(GtkGLArea *area, GdkGLContext *context, gpointer user_data) {
     struct m3u_tv_player *player = user_data;
@@ -188,6 +189,8 @@ int main(int argc, char **argv) {
 
     struct tv_data data = get_tv_data();
     setup_guide(notebook, player, data);
+
+    get_guide_data();
 
     g_signal_connect(window, "delete-event", G_CALLBACK (gtk_main_quit), NULL);
 

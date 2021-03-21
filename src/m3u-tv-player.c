@@ -39,7 +39,7 @@ static void update_label(struct time_label label, double time) {
 		g_free(sec_str);
 		g_free(duration_str);
 	} else {
-		text = g_strdup_printf("%02d:%02d", (sec%3600)/60, sec%60);
+		text = g_strdup_printf("%02d:%02d", (sec % 3600) / 60, sec % 60);
 	}
 
 	gtk_label_set_text(GTK_LABEL (label.label), text);
